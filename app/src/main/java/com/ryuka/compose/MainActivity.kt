@@ -6,23 +6,25 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.ComposableOpenTarget
-import androidx.compose.runtime.MovableContent
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.ryuka.compose.ui.theme.ComposeTheme
 
@@ -44,20 +46,73 @@ class MainActivity : ComponentActivity() {
                             .fillMaxSize()
                     ) {
 
-                        TopicStatusRow("Backend", "Pending", modifier = Modifier)
+                        CounterScreen(
+                            modifier = Modifier.padding(innerPadding)
+                        )
+
+                        TiklaState()
+
+                        ActionCard(
+                            onClick = { bosAdamFonksiyonu() },
+                            modifier = Modifier.fillMaxWidth(),
+                            {
+                                Text(
+                                    text = "content burası artık nere gelcekse ",
+                                    modifier = Modifier
+                                )
+                                Text(
+                                    text = "neyse devam ", modifier = Modifier
+                                )
+                            })
+
+                        Row(modifier = Modifier) {
+                            ButonHasParam(
+                                modifier = Modifier.weight(1f),
+                                text = "deneme",
+                                onClickParametreli = {
+                                    println(it)
+                                })
+
+                            ActionButton(
+                                text = "aksiyon", modifier = Modifier.weight(1f), onClick = {
+                                    bosAdamFonksiyonu()
+                                    println("1 tane fonksiyon yazdim icine 2 tane yazabiliyom ? ")
+                                    bosAdamFonksiyonu()
+                                })
+                            Tikla(modifier = Modifier.weight(2f))
+                        }
+
+                        TopicStatusRow(
+                            "Backend",
+                            "Pending",
+                            onClick = { println("backend satira bastin ") },
+                            modifier = Modifier
+                        )
                         SlotCard() { Yazi(status = "SUCUK") }
 
                         TwoParamSlotCard(modifier = Modifier, "param 0", header = {
                             Yazi(status = it + " : it")
                         }) {
-                            TopicStatusRow("param 1 ", "param 2")
+                            TopicStatusRow(
+                                "param 1 ",
+                                "param 2",
+                                onClick = { println("param satira bastin ") },
+                                modifier = Modifier
+                            )
                         }
 
                         NonParamTwoSlotCard(
-                            modifier = Modifier.padding(vertical = 15.dp),
-                            header = {
+                            modifier = Modifier.padding(vertical = 15.dp), header = {
                                 Yazi(modifier = Modifier)
-                            }) { TopicStatusRow("NonParam1 topic ", "NonParam2 status") }
+                            }) {
+                            TopicStatusRow(
+                                "NonParam1 topic ",
+                                "NonParam2 status",
+                                onClick = { println("NonParam1 satira bastin ") },
+                                modifier = Modifier
+
+                            )
+                        }
                     }
 
 
@@ -69,8 +124,182 @@ class MainActivity : ComponentActivity() {
 
 
 @Composable
-fun TopicStatusRow(topic: String, status: String, modifier: Modifier = Modifier) {
-    Row(modifier = modifier.fillMaxWidth()) {
+fun CounterScreen(modifier: Modifier = Modifier) {
+    var counter by remember { mutableStateOf(0) }
+
+    Column(modifier) {
+
+        Text(
+            text = "sayac:  $counter",
+            modifier = Modifier
+                .border(1.6.dp, Color.Yellow)
+                .padding(4.dp),
+            color = Color.White
+        )
+
+        Row(Modifier.padding(horizontal = 3.dp)) {
+
+
+//            Button(modifier = Modifier, onClick = {
+//                counter++
+//                println("sayaci arrttirdikkk $counter")
+//            }) {
+//                Text(text = "Arttir ", modifier = Modifier)
+//            }
+//
+//            Button(modifier = Modifier, onClick = {
+//                counter = 0
+//                println("sayaci arrttirdikkk $counter")
+//            }) {
+//                Text(text = "Sifirla", modifier = Modifier, color = Color.White)
+//            }
+            ResetButton() {
+                counter = 0
+            }
+            ArttirButton() {
+                counter++
+            }
+            AzaltButton(onClicks = {
+                counter--
+            })
+        }
+        HorizontalDivider(color = Color.White, thickness = 5.dp)
+    }
+}
+
+
+@Composable
+fun ResetButton(
+    modifier: Modifier = Modifier, onClicks: () -> Unit
+) { // buna parametre verince patlıyor ?
+
+    Button(modifier = modifier, onClick = { onClicks() }) {
+        Text(text = "reset", modifier = Modifier)
+    }
+}
+
+@Composable
+fun ArttirButton(
+    modifier: Modifier = Modifier, onClicks: () -> Unit
+) { // buna parametre verince patlıyor ?
+
+    Button(modifier = modifier, onClick = { onClicks() }) {
+        Text(text = "arttir", modifier = Modifier)
+    }
+}
+
+
+@Composable
+fun AzaltButton(
+    modifier: Modifier = Modifier, onClicks: () -> Unit
+) { // buna parametre verince patlıyor ?
+
+    Button(modifier = modifier, onClick = { onClicks() }) {
+        Text(text = "azalt", modifier = Modifier)
+    }
+}
+
+@Composable
+fun ActionCard(
+    onClick: () -> Unit, modifier: Modifier = Modifier, content: @Composable () -> Unit
+) {
+
+    // ROOT
+    Button(
+        onClick = onClick,
+        modifier = modifier.height(150.dp),
+    ) {
+        Column() {
+
+
+            Text(text = "Action Card Text ", modifier = Modifier)
+            HorizontalDivider()
+            Row() {
+
+                content()
+            }
+        }
+    }
+
+}
+
+
+fun bosAdamFonksiyonu() {
+    println("bombos")
+}
+
+var counter = 1
+
+@Composable
+fun Tikla(modifier: Modifier = Modifier) {
+    Button(modifier = modifier, onClick = {
+        println("BASTİ BANA $counter")
+        counter++
+    }) {
+        Text(text = "slm $counter")
+    }
+}
+
+@Composable
+fun TiklaState(modifier: Modifier = Modifier) {
+
+    var counter by remember { mutableStateOf(0) }
+    Button(modifier = modifier, onClick = {
+        counter++
+    }) {
+        Text(text = "slm ${counter}")
+
+    }
+}
+
+@Composable
+fun ActionButton(
+    text: String, onClick: () -> Unit, // callback
+    modifier: Modifier = Modifier
+) {
+    // root button
+    Button(modifier = modifier, onClick = onClick) {
+        Text(
+            text = "herkes bana basiyo $text",
+            modifier = Modifier
+                .background(Color.Red)
+                .padding(5.dp)
+        )
+    }
+
+}
+
+
+@Composable
+fun ButonHasParam(
+    text: String, onClickParametreli: (String) -> Unit, // callback
+    modifier: Modifier = Modifier
+) {
+    // root button
+    Button(modifier = modifier, onClick = { onClickParametreli(text) }) {
+        Text(
+            text = "herkes bana basiyo $text",
+            modifier = Modifier
+                .background(Color.Red)
+                .padding(5.dp)
+        )
+        onClickParametreli("cabbar")  // burda cagırmanın manası yok ! cünkü burdayken component compose edilirken calısır sadece
+    }
+
+}
+
+
+@Composable
+fun TopicStatusRow(
+    topic: String, status: String, onClick: () -> Unit, modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .clickable(onClick = onClick)
+            .fillMaxWidth()
+            .border(1.5.dp, Color.Gray)
+            .padding(12.dp)
+    ) {
 // Childlar dısardaki modifieri almamalı onu sadece root almalı childler kendi modifierini yazmalı
         Text(
             text = "topic : $topic", color = Color.White, modifier = Modifier.weight(2f)
@@ -139,9 +368,7 @@ fun TwoParamSlotCard(
 
 @Composable
 fun NonParamTwoSlotCard(
-    modifier: Modifier = Modifier,
-    header: @Composable () -> Unit,
-    content: @Composable () -> Unit
+    modifier: Modifier = Modifier, header: @Composable () -> Unit, content: @Composable () -> Unit
 ) {
     Column(
         modifier = modifier
@@ -149,6 +376,8 @@ fun NonParamTwoSlotCard(
             .padding(15.dp)
     ) {
         header()
+
+
         content()
 
     }
