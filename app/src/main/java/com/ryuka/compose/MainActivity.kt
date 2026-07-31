@@ -1,29 +1,45 @@
 package com.ryuka.compose
 
 import android.os.Bundle
+import android.provider.CalendarContract
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.ScrollableState
+import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.magnifier
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.modifier.modifierLocalProvider
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ryuka.compose.ui.theme.ComposeTheme
@@ -45,6 +61,14 @@ class MainActivity : ComponentActivity() {
                             .background(Color.DarkGray)
                             .fillMaxSize()
                     ) {
+
+
+                        TaskList(modifier = Modifier.padding(innerPadding))
+
+                        HorizontalDivider()
+
+                        NameForm(Modifier.padding(innerPadding))
+
 
                         CounterScreen(
                             modifier = Modifier.padding(innerPadding)
@@ -124,6 +148,123 @@ class MainActivity : ComponentActivity() {
 
 
 @Composable
+fun TaskList(modifier: Modifier = Modifier) {
+    val taskList = listOf<Task>(
+        Task(1, "iot teorik arastir"),
+        Task(2, "esp32 ile pratik yap"),
+        Task(3, "mqtt protokol "),
+        Task(4, "sensör verilerini anlamlandır ! "),
+    )
+
+    LazyColumn(modifier.height(550.dp)) {
+        items(
+            items = taskList,
+            key = { x -> x.taskId }
+        ) { tas ->
+
+            TaskRow(
+                modifier = Modifier.padding(1.5.dp),
+                onDelete = { println("will delete $tas") },
+                task = tas
+            )
+        }
+    }
+}
+
+
+@Composable
+fun TaskRow(modifier: Modifier = Modifier, task: Task, onDelete: () -> Unit) {
+    Card(modifier = modifier) {
+        Row(modifier = Modifier.background(Color.Black).fillMaxWidth().padding(12.dp) , horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(
+                modifier = Modifier,
+                text = "${task.taskName} -> ${task.isActive}",
+                color = Color.White
+            )
+
+            Button(modifier= Modifier,onClick = onDelete) {
+                Text(modifier= Modifier,text = "Sil")
+            }
+        }
+    }
+}
+
+@Composable
+fun NameForm(modifier: Modifier = Modifier) {
+    var name by remember { mutableStateOf("") }
+
+
+//    val showError =k
+    Column(modifier) {
+
+        val isNameValid = name.length >= 3
+        val showError = name.isNotEmpty() && !isNameValid
+
+        var savedText: String = ""
+
+        if (!showError) {
+
+            Text(modifier = Modifier, text = "Yeni Ad : $name", color = Color.White)
+        }
+
+        Text(modifier = Modifier, text = "Yeni Ad : $name", color = Color.White)
+
+
+
+        NameInput(name, Modifier, onNameChange = { ad -> name = ad }, showError)
+
+        SaveButton(Modifier, onClack = {
+            savedText = name
+        }, isActive = !showError)
+
+        ClearButton(Modifier, onClick = { name = "" })
+    }
+
+}
+
+
+@Composable
+fun SaveButton(modifier: Modifier = Modifier, onClack: () -> Unit, isActive: Boolean = false) {
+    Button(
+        modifier = modifier,
+        enabled = isActive,
+        onClick = { onClack() }
+    ) {
+        Text(text = "enable")
+    }
+}
+
+@Composable
+fun NameInput(
+    name: String, modifier: Modifier = Modifier, onNameChange: (String) -> Unit, isError: Boolean
+) {
+
+
+    OutlinedTextField(
+        value = name,
+        onValueChange = { newText: String -> onNameChange(newText) },
+        modifier = modifier,
+        isError = isError,
+        supportingText = {
+            if (isError) {
+                Text(text = "HATA KAKNA ")
+            }
+        }
+
+    )
+}
+
+
+@Composable
+fun ClearButton(modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Button(modifier = modifier, onClick = { onClick() }) {
+        Text("temizle", Modifier)
+    }
+
+}
+
+
+@Composable
 fun CounterScreen(modifier: Modifier = Modifier) {
     var counter by remember { mutableStateOf(0) }
 
@@ -139,20 +280,6 @@ fun CounterScreen(modifier: Modifier = Modifier) {
 
         Row(Modifier.padding(horizontal = 3.dp)) {
 
-
-//            Button(modifier = Modifier, onClick = {
-//                counter++
-//                println("sayaci arrttirdikkk $counter")
-//            }) {
-//                Text(text = "Arttir ", modifier = Modifier)
-//            }
-//
-//            Button(modifier = Modifier, onClick = {
-//                counter = 0
-//                println("sayaci arrttirdikkk $counter")
-//            }) {
-//                Text(text = "Sifirla", modifier = Modifier, color = Color.White)
-//            }
             ResetButton() {
                 counter = 0
             }
@@ -283,7 +410,7 @@ fun ButonHasParam(
                 .background(Color.Red)
                 .padding(5.dp)
         )
-        onClickParametreli("cabbar")  // burda cagırmanın manası yok ! cünkü burdayken component compose edilirken calısır sadece
+//        onClickParametreli("cabbar")  // burda cagırmanın manası yok ! cünkü burdayken component compose edilirken calısır sadece
     }
 
 }
