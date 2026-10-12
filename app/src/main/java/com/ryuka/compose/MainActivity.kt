@@ -149,23 +149,34 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun TaskList(modifier: Modifier = Modifier) {
-    val taskList = listOf<Task>(
-        Task(1, "iot teorik arastir"),
-        Task(2, "esp32 ile pratik yap"),
-        Task(3, "mqtt protokol "),
-        Task(4, "sensör verilerini anlamlandır ! "),
-    )
+    var taskList by remember {
+
+        mutableStateOf(
+            listOf() {
+                Task(1, "iot teorik arastir")
+                Task(2, "esp32 ile pratik yap")
+                Task(3, "mqtt protokol ")
+                Task(4, "sensör verilerini anlamlandır ! ")
+            }
+        )
+    }
 
     LazyColumn(modifier.height(550.dp)) {
         items(
             items = taskList,
-            key = { x -> x.taskId }
+            key = { x -> x.invoke().taskId }
         ) { tas ->
 
             TaskRow(
                 modifier = Modifier.padding(1.5.dp),
-                onDelete = { println("will delete $tas") },
-                task = tas
+                onDelete = {
+                    taskList = taskList - tas
+                    taskList =
+                        taskList.filterNot { tass -> tass.invoke().taskId == tas.invoke().taskId }
+                            .toMutableList()
+                    println("will delete $tas")
+                },
+                task = tas.invoke()
             )
         }
     }
@@ -175,15 +186,21 @@ fun TaskList(modifier: Modifier = Modifier) {
 @Composable
 fun TaskRow(modifier: Modifier = Modifier, task: Task, onDelete: () -> Unit) {
     Card(modifier = modifier) {
-        Row(modifier = Modifier.background(Color.Black).fillMaxWidth().padding(12.dp) , horizontalArrangement = Arrangement.SpaceBetween) {
+        Row(
+            modifier = Modifier
+                .background(Color.Black)
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
             Text(
                 modifier = Modifier,
                 text = "${task.taskName} -> ${task.isActive}",
                 color = Color.White
             )
 
-            Button(modifier= Modifier,onClick = onDelete) {
-                Text(modifier= Modifier,text = "Sil")
+            Button(modifier = Modifier, onClick = onDelete) {
+                Text(modifier = Modifier, text = "Sil")
             }
         }
     }
